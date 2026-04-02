@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Shopping Tracker</title>
+
+<!-- 🔥 MOBILE ZOOM FIX -->
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+<title>Refund Tracker</title>
 
 <style>
 body {
@@ -14,34 +18,36 @@ body {
 
 h1 { text-align:center; }
 
-.card {
-  background:#1e293b;
-  padding:10px;
-  border-radius:10px;
-  margin-bottom:10px;
-}
-
+/* 🔥 INPUT FIX */
 input,select,button {
   width:100%;
-  padding:8px;
-  margin:5px 0;
-  border-radius:5px;
+  padding:10px;
+  margin:6px 0;
+  border-radius:8px;
   border:none;
+  font-size:16px; /* zoom fix */
 }
 
-button { background:#22c55e; color:white; }
-
-.grid {
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-  gap:10px;
+button {
+  background:#22c55e;
+  color:white;
+  font-weight:bold;
 }
 
+.card {
+  background:#1e293b;
+  padding:12px;
+  border-radius:12px;
+  margin-bottom:15px;
+}
+
+/* 🔥 SECTION STACK (niche ek ke baad ek) */
 .section {
   background:#020617;
-  padding:10px;
-  border-radius:10px;
-  height:350px;
+  padding:12px;
+  border-radius:12px;
+  margin-bottom:15px;
+  max-height:300px;
   display:flex;
   flex-direction:column;
 }
@@ -53,39 +59,19 @@ button { background:#22c55e; color:white; }
 
 .item {
   background:#334155;
-  padding:8px;
-  margin-top:8px;
-  border-radius:8px;
+  padding:10px;
+  margin-top:10px;
+  border-radius:10px;
 }
 
 .topStats {
   background:black;
-  padding:10px;
-  border-radius:10px;
-  margin-bottom:10px;
+  padding:12px;
+  border-radius:12px;
+  margin-bottom:15px;
 }
 
 .small { font-size:12px; color:#94a3b8; }
-
-/* POPUP */
-#popup {
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background:rgba(0,0,0,0.7);
-  display:none;
-  justify-content:center;
-  align-items:center;
-}
-
-.popup-box {
-  background:#1e293b;
-  padding:20px;
-  border-radius:10px;
-  text-align:center;
-}
 </style>
 </head>
 
@@ -110,7 +96,6 @@ button { background:#22c55e; color:white; }
 <option>Amazon</option>
 <option>Flipkart</option>
 <option>Meesho</option>
-<option>Others</option>
 </select>
 
 <select id="dealer">
@@ -121,12 +106,11 @@ button { background:#22c55e; color:white; }
 
 <input id="refundDate" type="date">
 
-<button id="mainBtn" onclick="addData()">Add Order</button>
+<button onclick="addData()">Add Order</button>
 
 </div>
 
-<div class="grid">
-
+<!-- 🔥 STACKED SECTIONS -->
 <div class="section">
 <h3>📦 All Orders</h3>
 <div class="list" id="orders"></div>
@@ -142,78 +126,52 @@ button { background:#22c55e; color:white; }
 <div class="list" id="complete"></div>
 </div>
 
-</div>
-
-<!-- POPUP -->
-<div id="popup">
-  <div class="popup-box">
-    <p>Delete karna hai?</p>
-    <button onclick="confirmDelete()" style="background:red;">Yes</button>
-    <button onclick="closePopup()" style="background:gray;">No</button>
-  </div>
-</div>
-
 <script>
 let data = JSON.parse(localStorage.getItem("refundData")) || [];
-let deleteIndex = null;
-let editIndex = null;
 
 function save(){
   localStorage.setItem("refundData",JSON.stringify(data));
 }
 
 function addData(){
-  let product = productInput.value;
-  let amount = parseFloat(amountInput.value) || 0;
-  let refundAmount = parseFloat(refundInput.value) || 0;
-
-  let source = sourceSelect.value;
-  let dealer = dealerSelect.value;
-  let refundDate = refundDateInput.value;
+  let product = document.getElementById("product").value;
+  let amount = parseFloat(document.getElementById("amount").value) || 0;
+  let refundAmount = parseFloat(document.getElementById("refundAmount").value) || 0;
+  let source = document.getElementById("source").value;
+  let dealer = document.getElementById("dealer").value;
+  let refundDate = document.getElementById("refundDate").value;
 
   if(!product || !amount || !refundDate){
     alert("Fill all fields");
     return;
   }
 
-  if(editIndex !== null){
-    data[editIndex] = {
-      ...data[editIndex],
-      product,amount,refundAmount,source,dealer,refundDate
-    };
-    editIndex = null;
-    mainBtn.innerText="Add Order";
-  } else {
-    data.unshift({
-      product,
-      amount,
-      refundAmount,
-      source,
-      dealer,
-      refundDate,
-      orderDate:new Date().toLocaleDateString(),
-      status:"pending"
-    });
-  }
+  data.unshift({
+    product,
+    amount,
+    refundAmount,
+    source,
+    dealer,
+    refundDate,
+    orderDate:new Date().toLocaleDateString(),
+    status:"pending"
+  });
 
   save();
   showData();
+
+  // 🔥 CLEAR INPUTS AFTER ADD
+  document.getElementById("product").value="";
+  document.getElementById("amount").value="";
+  document.getElementById("refundAmount").value="";
+  document.getElementById("refundDate").value="";
 }
 
-const productInput=document.getElementById("product");
-const amountInput=document.getElementById("amount");
-const refundInput=document.getElementById("refundAmount");
-const sourceSelect=document.getElementById("source");
-const dealerSelect=document.getElementById("dealer");
-const refundDateInput=document.getElementById("refundDate");
-const mainBtn=document.getElementById("mainBtn");
-
 function createHTML(item,i,type){
-  let btn="",delBtn=`<button onclick="del(${i})">Delete</button>`;
-  let editBtn=`<button onclick="edit(${i})">Edit</button>`;
+  let btn = "";
 
   if(type==="pending"){
-    btn=`<button onclick="done(${i})">Done</button>`;
+    btn = `<button onclick="done(${i})">Done</button>`;
   }
 
   return `
@@ -224,7 +182,7 @@ function createHTML(item,i,type){
     👤 ${item.dealer}<br>
     <div class="small">Order: ${item.orderDate}</div>
     <div class="small">Refund: ${item.refundDate}</div>
-    ${btn} ${editBtn} ${delBtn}
+    ${btn}
   </div>`;
 }
 
@@ -274,37 +232,8 @@ function done(i){
   showData();
 }
 
-function del(i){
-  deleteIndex=i;
-  popup.style.display="flex";
-}
-
-function confirmDelete(){
-  data.splice(deleteIndex,1);
-  save();
-  showData();
-  closePopup();
-}
-
-function closePopup(){
-  popup.style.display="none";
-}
-
-function edit(i){
-  let item=data[i];
-  productInput.value=item.product;
-  amountInput.value=item.amount;
-  refundInput.value=item.refundAmount;
-  sourceSelect.value=item.source;
-  dealerSelect.value=item.dealer;
-  refundDateInput.value=item.refundDate;
-
-  editIndex=i;
-  mainBtn.innerText="Update Order";
-}
-
 showData();
 </script>
 
 </body>
-  </html>
+</html>
